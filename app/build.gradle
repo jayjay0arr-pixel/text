@@ -1,0 +1,52 @@
+plugins {
+    id 'com.android.application'
+}
+
+// Optional persistent signing key (see README). Without it the build falls back
+// to the debug key, which is fine for sideloading but changes on every CI run.
+def ksFile = System.getenv('KEYSTORE_FILE')
+
+android {
+    namespace 'com.textlauncher.app'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId 'com.textlauncher.app'
+        minSdk 26
+        targetSdk 34
+        versionCode 1
+        versionName '1.0'
+    }
+
+    signingConfigs {
+        if (ksFile) {
+            release {
+                storeFile file(ksFile)
+                storePassword System.getenv('KEYSTORE_PASSWORD')
+                keyAlias System.getenv('KEY_ALIAS')
+                keyPassword System.getenv('KEY_PASSWORD')
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            signingConfig ksFile ? signingConfigs.release : signingConfigs.debug
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    lint {
+        checkReleaseBuilds false
+        abortOnError false
+    }
+}
+
+// Deliberately no dependencies: plain Android framework only, so the APK stays tiny.
